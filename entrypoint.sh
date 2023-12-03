@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 instanceCount=$(jq '.instanceCount' ${CONFIGURATION_DIR}/configuration.json)
 callbackScript=${CONFIGURATION_DIR}/callback.sh

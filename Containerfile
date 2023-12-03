@@ -1,10 +1,9 @@
-FROM node:21.2.0-bullseye
+FROM node:21.2.0-alpine3.18
 ARG AWS_CDK_VERSION=2.111.0
 
-RUN apt-get update \
-    && apt-get install -y jq bash \
+RUN apk add --update jq \
     && npm install -g aws-cdk@${AWS_CDK_VERSION} \
-    && apt-get clean all
+    && rm -rf /var/cache/apk/*
 
 ENV EXECUTION_DIR /provision
 ENV OUT_DIR /out
