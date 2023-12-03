@@ -1,9 +1,8 @@
 FROM node:21.2.0-alpine3.18
 ARG AWS_CDK_VERSION=2.111.0
 
-RUN apk add --update jq \
-    && npm install -g aws-cdk@${AWS_CDK_VERSION} \
-    && rm -rf /var/cache/apk/*
+RUN apk add --update --no-cache jq openssh-keygen \
+    && npm install -g aws-cdk@${AWS_CDK_VERSION}
 
 ENV EXECUTION_DIR /provision
 ENV OUT_DIR /out
