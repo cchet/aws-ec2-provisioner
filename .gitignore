@@ -1,0 +1,13 @@
+*.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+config/configuration.json
+cdk.context.json
+out/
+config/
+*.iml
+.idea/
