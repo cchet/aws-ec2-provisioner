@@ -1,4 +1,4 @@
-name: Builds the container image for the '${{ github.repository }}'
+name: Builds and pushes the container image
 
 on:
   push:
