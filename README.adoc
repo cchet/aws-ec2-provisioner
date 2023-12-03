@@ -1,0 +1,108 @@
+= AWS EC2 Provisioner
+
+This is the repository for a container based AWS EC2 Provisioner, which can provision EC2 instances based on a provided configuration.
+
+== Preparations
+
+=== AWS CDK
+
+You need to have an AWS account and your AWS CDK setup.
+
+See [Getting started with AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html) for help how to setup AWS CDK.
+
+=== Provide the configuration
+
+The configuration for the AWS infrastructure is provided via a json file named `configuration.json` which defines the
+following configurations.
+
+* `id` +
+  A unique id string, which is added as a tag to all created resources
+* `account` +
+  The account which provisions the AWS infrastructure, must correlate to the provided aws credentials
+* `region` +
+  The region to the deploy the AWS infrastructure to
+* `ami` +
+  The ami-id of the underlying x86 platform supporting EC2 image to use
+* `instanceCount` +
+  The count of EC2 instances to create
+
+.Configuration example
+[source,sh]
+----
+{
+  "id": "containerizationTrainingGepardecLinz",
+  "account": "***",
+  "region": "eu-central-1",
+  "ami": "ami-06b4d9ba1f23a8da4",
+  "instanceCount": 1
+}
+----
+
+IMPORTANT: Don't change the id after a AWS infrastructure has been provisioned, because otherwise it cannot be destroyed anymore.
+
+== Provision an environment
+
+=== How to use the container image
+
+.Use the container
+[source,sh]
+----
+podman run \
+  -v ./out:/out:rw \
+  -v $(echo ~)/.aws:/root/.aws:ro \
+  -v ./config/configuration.json:/provision/config/configuration.json:ro \
+  ghcr.io/cchet/aws-ec2-provisioner:[latest | <BRANCH_OR_TAG_NAME>] \
+  [synth | deploy | destroy]
+----
+
+The following mounts are necessary.
+
+* `./out:/out` +
+This is where the ssh key-pairs are created as well as the `training-info.json` file where the ip-addresses and domain-names
+of the provisioned ec2-instances can be found.
+* `$(echo ~)/.aws:/root/.aws:ro` +
+This is where you AWS credentials are located
+* `./config/configuration.json:/provision/config/configuration.json:ro` +
+This is the configuration file
+
+The following commands are available.
+
+* `synth`  +
+Synthesizes the infrastructure definition
+* `deploy` +
+Deploy the infrastructure
+* `destroy` +
+Destroys the provisioned the infrastructure
+
+=== How to bootstrap your training environment
+
+You can configure your training environment with a bootstrap script file named `bootstrap.sh`. +
+
+IMPORTANT: The script must be executable on the used Linux distribution you defined via the `ami` configuration parameter.
+
+=== How to provide callbacks
+
+You can provide a callback script `callback.sh` which gets executed after the `deploy` step has been finished.
+
+IMPORTANT: This script must be executable within the running container.
+
+The following resources are available after a `deploy` of an training environment `callback.sh` script.
+
+* `/out/id_rsa<IDX>`
+* `/out/id_rsa<IDX>.pub`
+* `/out/training-info.json``
+
+The following environment variables are available during the execution of the `callback.sh` script.
+
+* `CONFIGURATION_DIR`
+* `OUT_DIR`
+* `EXECUTION_DIR``
+
+Useful commands in the `callback.sh` script.
+
+* `jq '.EC2Stack<TRAINING-ID>.instance[IP | URI]<INSTANCE_IDX>' ${OUT_DIR}/training-info.json` +
+Extracts the instance `ip` or `uri` where the instance can be addressed
+* `jq '.instanceCount' ${CONFIGURATION_DIR}/configuration.json` +
+Gets the configured instance count
+
+IMPORTANT: Be aware that all commands of the `callback.sh` script are executed within the container!

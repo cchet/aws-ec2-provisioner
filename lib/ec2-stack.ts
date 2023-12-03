@@ -59,7 +59,7 @@ export class Ec2Stack extends cdk.Stack {
     createVpc(subNets: SubnetConfiguration[]) {
         return new Vpc(this, `${configuration.id}Vpc`, {
             vpcName: `${configuration.id}Vpc`,
-            ipAddresses: IpAddresses.cidr("10.0.0.0/15"),
+            ipAddresses: IpAddresses.cidr("10.0.0.0/16"),
             enableDnsHostnames: true,
             enableDnsSupport: true,
             subnetConfiguration: subNets,
@@ -80,7 +80,9 @@ export class Ec2Stack extends cdk.Stack {
     createInstance(idx: number, vpc: Vpc, securityGroup: SecurityGroup, keyPair: CfnKeyPair) {
         return new Instance(this, `${configuration.id}LinuxInstance${idx}`, {
             instanceName: `${configuration.id}LinuxEc2Instance${idx}`,
-            machineImage: this.createMachineImage(),
+            machineImage: MachineImage.genericLinux(Object.fromEntries(new Map([
+                [configuration.region, configuration.ami]
+            ]))),
             instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.MEDIUM),
             vpc: vpc,
             keyName: keyPair.keyName,
@@ -88,19 +90,7 @@ export class Ec2Stack extends cdk.Stack {
         });
     }
 
-    createMachineImage() {
-        switch (configuration.amiType) {
-            case 'linux':
-                return MachineImage.genericLinux(Object.fromEntries(new Map([
-                    [configuration.region, configuration.ami]
-                ])));
-            default:
-                throw Error("AmiType not supported");
-
-        }
-    }
-
     emptyArray(count: number): Array<number> {
-        return Array(configuration.instanceCount).fill(0);
+        return Array(count).fill(0);
     }
 }
