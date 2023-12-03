@@ -20,9 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Put current date into a variable
-        run: |
-          $NOW=& Get-Date -format yyyy-MM-dd
-          echo "NOW=$(date)" >> $env:GITHUB_ENV
+        run: echo "NOW=$(date)" >> $env:GITHUB_ENV
       - name: Checkout
         uses: actions/checkout@v4
       - name: Setup QEMU for multiplatform support
@@ -47,7 +45,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=tag
-            type=raw,value=latest,enable=${{ github.ref_name == main' }}
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
           labels: |
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.title=AWS EC2 Provisioner
