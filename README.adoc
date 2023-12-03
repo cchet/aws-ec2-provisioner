@@ -62,8 +62,8 @@ This is where the ssh key-pairs are created as well as the `training-info.json` 
 of the provisioned ec2-instances can be found.
 * `$(echo ~)/.aws:/root/.aws:ro` +
 This is where you AWS credentials are located
-* `./config/configuration.json:/provision/config/configuration.json:ro` +
-This is the configuration file
+* `./config:/provision/config:ro` +
+This is where the configuration is located
 
 The following commands are available.
 
@@ -76,17 +76,17 @@ Destroys the provisioned the infrastructure
 
 === How to bootstrap your training environment
 
-You can configure your training environment with a bootstrap script file named `bootstrap.sh`. +
+You can configure your training environment with a bootstrap script file named `bootstrap.sh` located in the mapped `/config` directory. +
 
 IMPORTANT: The script must be executable on the used Linux distribution you defined via the `ami` configuration parameter.
 
 === How to provide callbacks
 
-You can provide a callback script `callback.sh` which gets executed after the `deploy` step has been finished.
+You can provide a callback script `callback.sh` located in the mapped `/config` directory, which gets executed after the `deploy` step has been finished.
 
 IMPORTANT: This script must be executable within the running container.
 
-The following resources are available after a `deploy` of an training environment `callback.sh` script.
+The following resources are available after a `deploy` of a training environment `callback.sh` script.
 
 * `/out/id_rsa<IDX>`
 * `/out/id_rsa<IDX>.pub`

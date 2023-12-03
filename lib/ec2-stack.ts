@@ -78,7 +78,7 @@ export class Ec2Stack extends cdk.Stack {
     }
 
     createInstance(idx: number, vpc: Vpc, securityGroup: SecurityGroup, keyPair: CfnKeyPair) {
-        return new Instance(this, `${configuration.id}LinuxInstance${idx}`, {
+        const instance = new Instance(this, `${configuration.id}LinuxInstance${idx}`, {
             instanceName: `${configuration.id}LinuxEc2Instance${idx}`,
             machineImage: MachineImage.genericLinux(Object.fromEntries(new Map([
                 [configuration.region, configuration.ami]
@@ -88,6 +88,12 @@ export class Ec2Stack extends cdk.Stack {
             keyName: keyPair.keyName,
             securityGroup: securityGroup,
         });
+        const bootstrapFile = `${process.env.CONFIGURATION_DIR}/bootstrap.sh`;
+        if (fs.existsSync(bootstrapFile)) {
+            instance.addUserData(fs.readFileSync(bootstrapFile, 'utf-8'));
+        }
+
+        return instance;
     }
 
     emptyArray(count: number): Array<number> {
