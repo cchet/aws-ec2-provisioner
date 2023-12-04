@@ -44,7 +44,7 @@ function cleanup {
 if [ "${1}" == 'deploy' ]
 then
   create_ssh_key_pairs
-  cdk deploy --require-approval never --outputs-file "${OUT_DIR}/training-info.json"
+  cdk deploy --require-approval never --outputs-file "${OUT_DIR}/info.json"
   execute_callback
 elif [ "${1}" == 'destroy' ]
 then

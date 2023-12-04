@@ -8,12 +8,12 @@ This is the repository for a container based AWS EC2 Provisioner, which can prov
 
 You need to have an AWS account and your AWS CDK setup.
 
-See [Getting started with AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html) for help how to setup AWS CDK.
+See link:https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html[Getting started with AWS CDK] for help how to setup AWS CDK.
 
 === Provide the configuration
 
-The configuration for the AWS infrastructure is provided via a json file named `configuration.json` which defines the
-following configurations.
+The configuration for the AWS infrastructure is provided via a json file named `configuration.json` which is located in the mapped `/config` directory
+and defines the following configurations.
 
 * `id` +
   A unique id string, which is added as a tag to all created resources
@@ -22,7 +22,7 @@ following configurations.
 * `region` +
   The region to the deploy the AWS infrastructure to
 * `ami` +
-  The ami-id of the underlying x86 platform supporting EC2 image to use
+  The ami-id of the Linux EC2 image to use
 * `instanceCount` +
   The count of EC2 instances to create
 
@@ -30,7 +30,7 @@ following configurations.
 [source,sh]
 ----
 {
-  "id": "containerizationTrainingGepardecLinz",
+  "id": "TrainingDocker",
   "account": "***",
   "region": "eu-central-1",
   "ami": "ami-06b4d9ba1f23a8da4",
@@ -39,12 +39,12 @@ following configurations.
 ----
 
 IMPORTANT: Don't change the id after a AWS infrastructure has been provisioned, because otherwise it cannot be destroyed anymore.
+You always can destroy the AWS Stack via the AWS Management Console.
 
 == Provision an environment
 
 === How to use the container image
 
-.Use the container
 [source,sh]
 ----
 podman run \
@@ -58,25 +58,26 @@ podman run \
 The following mounts are necessary.
 
 * `./out:/out` +
-This is where the ssh key-pairs are created as well as the `training-info.json` file where the ip-addresses and domain-names
-of the provisioned ec2-instances can be found.
+This is where the ssh-key pairs are created as well as the `info.json` file where the ip addresses and domain names
+of the provisioned AWS EC2 instances can be found.
 * `$(echo ~)/.aws:/root/.aws:ro` +
-This is where you AWS credentials are located
+This is the directory where your AWS credentials are stored and which are used by the AWS CDK CLI.
 * `./config:/provision/config:ro` +
-This is where the configuration is located
+This is where the configuration such as `configuration.json` and `bootstrap.sh` and/or `callback.h` scripts are located.
 
 The following commands are available.
 
 * `synth`  +
-Synthesizes the infrastructure definition
+Synthesizes the infrastructure definition. +
+This is also the default command.
 * `deploy` +
-Deploy the infrastructure
+Deploys the infrastructure.
 * `destroy` +
-Destroys the provisioned the infrastructure
+Destroys the provisioned the infrastructure.
 
-=== How to bootstrap your training environment
+=== How to bootstrap your environment
 
-You can configure your training environment with a bootstrap script file named `bootstrap.sh` located in the mapped `/config` directory. +
+You can configure your environment with a bootstrap script file named `bootstrap.sh` located in the mapped `/config` directory. +
 
 IMPORTANT: The script must be executable on the used Linux distribution you defined via the `ami` configuration parameter.
 
@@ -84,13 +85,13 @@ IMPORTANT: The script must be executable on the used Linux distribution you defi
 
 You can provide a callback script `callback.sh` located in the mapped `/config` directory, which gets executed after the `deploy` step has been finished.
 
-IMPORTANT: This script must be executable within the running container.
+IMPORTANT: This script must use the shebang `#!/bin/sh`
 
-The following resources are available after a `deploy` of a training environment `callback.sh` script.
+The following resources are available after a `deploy` of an environment `callback.sh` script.
 
 * `/out/id_rsa<IDX>`
 * `/out/id_rsa<IDX>.pub`
-* `/out/training-info.json``
+* `/out/info.json``
 
 The following environment variables are available during the execution of the `callback.sh` script.
 
@@ -100,9 +101,10 @@ The following environment variables are available during the execution of the `c
 
 Useful commands in the `callback.sh` script.
 
-* `jq '.EC2Stack<TRAINING-ID>.instance[IP | URI]<INSTANCE_IDX>' ${OUT_DIR}/training-info.json` +
+* `jq '.EC2Stack<ID>.instance[IP | URI]<INSTANCE_IDX>' ${OUT_DIR}/info.json` +
 Extracts the instance `ip` or `uri` where the instance can be addressed
 * `jq '.instanceCount' ${CONFIGURATION_DIR}/configuration.json` +
 Gets the configured instance count
 
 IMPORTANT: Be aware that all commands of the `callback.sh` script are executed within the container!
+But it can generate resources to the `OUT_DIR` directory, which is mapped to the host.
