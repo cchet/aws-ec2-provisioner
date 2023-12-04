@@ -50,7 +50,7 @@ IMPORTANT: Don't change the id after a AWS infrastructure has been provisioned, 
 podman run \
   -v ./out:/out:rw \
   -v $(echo ~)/.aws:/root/.aws:ro \
-  -v ./config/configuration.json:/provision/config/configuration.json:ro \
+  -v ./config:/provision/config:ro \
   ghcr.io/cchet/aws-ec2-provisioner:[latest | <BRANCH_OR_TAG_NAME>] \
   [synth | deploy | destroy]
 ----
