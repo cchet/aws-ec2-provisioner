@@ -8,7 +8,7 @@ This is the repository for a container based AWS EC2 Provisioner, which can prov
 
 You need to have an AWS account and your AWS CDK setup.
 
-See link:https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html[Getting started with AWS CDK] for help how to setup AWS CDK.
+See link:https://aws.amazon.com/getting-started/guides/setup-cdk/[Getting started with AWS CDK Tutorial] for help how to setup AWS CDK.
 
 === Provide the configuration
 
@@ -108,3 +108,18 @@ Gets the configured instance count
 
 IMPORTANT: Be aware that all commands of the `callback.sh` script are executed within the container!
 But it can generate resources to the `OUT_DIR` directory, which is mapped to the host.
+
+== Local Development
+
+You need to following software for the local development.
+
+* `NodeJS 21.2.0`
+* `Docker or Podman`
+* `aws-cdk (NodeJS, Brew, ...)`
+
+The shell you use need to have the environment variables set as defined in the `.env` file, which can be set via
+`source .env`.
+
+You can build the container image locally with `podman build -t <IMAGE_TAG> -f Containerfile .`.
+
+The AWS infrastructure can be synthesized, deployed and destroyed via the AWS CDK.
