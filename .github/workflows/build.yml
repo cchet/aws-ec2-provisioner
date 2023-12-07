@@ -28,8 +28,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Docker Metadata
-        id: docker-meta
+        id: meta
         uses: docker/metadata-action@v5
+        env:
+          DOCKER_METADATA_ANNOTATIONS_LEVELS: manifest,index
         with:
           # list of Docker images to use as base name for tags
           images: |
@@ -40,6 +42,7 @@ jobs:
             type=ref,event=tag
             type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
           labels: |
+            maintainer=thomas.herzog@ihet.at
             org.opencontainers.image.source=${{ github.repositoryUrl }}
             org.opencontainers.image.title=AWS EC2 Provisioner
             org.opencontainers.image.description=Provisions an EC2 environment based on a provided configuration
@@ -61,5 +64,5 @@ jobs:
           file: Containerfile
           context: ./
           push: true
-          tags: ${{ steps.docker-meta.outputs.tags }}
-          labels: ${{ steps.docker-meta.outputs.annotations }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
