@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
 import {CfnOutput} from 'aws-cdk-lib';
 import {Construct} from 'constructs';
-import configuration from '../config/configuration.json';
+import * as config from '../config/configuration.json';
 import * as fs from "fs";
 import {
     CfnKeyPair,
@@ -18,6 +18,16 @@ import {
     SubnetType,
     Vpc
 } from "aws-cdk-lib/aws-ec2";
+
+interface Configuration {
+    id: string,
+    account: string,
+    region: string,
+    instanceCount: number,
+    ami: string,
+}
+
+const configuration: Configuration = config;
 
 export class Ec2Stack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
