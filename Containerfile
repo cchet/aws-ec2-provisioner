@@ -13,7 +13,8 @@ WORKDIR ${EXECUTION_DIR}
 COPY . ./
 
 RUN chmod 700 ./entrypoint.sh \
-    && npm update
+    && npm ci \
+    && npm cache clean --force
 
 VOLUME ["/root/.aws"]
 VOLUME ["/provision/config"]
