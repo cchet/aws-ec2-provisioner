@@ -7,4 +7,3 @@
 !package.json
 !package-lock.json
 !.npmignore
-node_modules
