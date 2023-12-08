@@ -13,7 +13,7 @@ See link:https://aws.amazon.com/getting-started/guides/setup-cdk/[Getting starte
 === Provide the configuration
 
 The configuration for the AWS infrastructure is provided via a json file named `configuration.json` which is located in the mapped `/config` directory
-and defines the following configurations.
+and contains the following configuration parameters.
 
 * `id` +
   A unique id string, which is added as a tag to all created resources
@@ -23,23 +23,59 @@ and defines the following configurations.
   The region to the deploy the AWS infrastructure to
 * `ami` +
   The ami-id of the Linux EC2 image to use
-* `instanceCount` +
-  The count of EC2 instances to create
+* `count` +
+  The count of the EC2 instances to create, for same instance configuration only
+* `class` +
+  The class of the EC2 instances to create. (case-insensitive)
+* `size` +
+  The size of the EC2 instances to create. (case-insensitive)
 
-.Configuration example
+The following configuration is useful when you want to provision multiple EC2 instances of the same type and configuration.
+
+.Configuration same instance configuration n-times
 [source,sh]
 ----
 {
-  "id": "TrainingDocker",
+  "id": "Ec2Environment",
   "account": "***",
   "region": "eu-central-1",
-  "ami": "ami-06b4d9ba1f23a8da4",
-  "instanceCount": 1
+  "instance": {
+    "ami": "ami-0dc2fd10d56160b0f",
+    "count": 1
+  }
+}
+----
+
+The following configuration is useful when you want to provision multiple EC2 instances of different type and configuration.
+
+.Configuration different instance configurations
+[source,sh]
+----
+{
+  "id": "Ec2Environment",
+  "account": "***",
+  "region": "eu-central-1",
+  "instances": [
+    {
+      "ami": "ami-0dc2fd10d56160b0f",
+      "class": "T4G",
+      "size": "MEDIUM"
+    },
+    {
+      "ami": "ami-0a074964af44a2b26",
+      "class": "T4G",
+      "size": "MEDIUM"
+    }
+  ]
 }
 ----
 
 IMPORTANT: Don't change the id after a AWS infrastructure has been provisioned, because otherwise it cannot be destroyed anymore.
 You always can destroy the AWS Stack via the AWS Management Console.
+
+TIP: See the link:https://aws.amazon.com/ec2/instance-types/[AWS documentation EC2 instance types] about the EC2 instance types.
+See the link:https://cloud-images.ubuntu.com/locator/ec2/[Available AMIs per region] you can choose from.
+Also the note the relation between the `class` and AMI cpu architecture!!
 
 == Provision an environment
 

@@ -18,28 +18,30 @@ import {
     SubnetType,
     Vpc
 } from "aws-cdk-lib/aws-ec2";
+import {
+    EC2Instance,
+    InstanceArrayConfiguration,
+    InstanceConfiguration,
+    isInstanceConfiguration,
+    SingleEC2Instance
+} from "./types";
 
-interface Configuration {
-    id: string,
-    account: string,
-    region: string,
-    instanceCount: number,
-    ami: string,
-}
-
-const configuration: Configuration = config;
+const configuration: InstanceConfiguration | InstanceArrayConfiguration = config;
 
 export class Ec2Stack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        const subNets: SubnetConfiguration[] = this.emptyArray(configuration.instanceCount).map((_, idx) => this.createSubNet(idx));
+        const count: number = (isInstanceConfiguration(configuration) ? (configuration as InstanceConfiguration).instance.count : (configuration as InstanceArrayConfiguration).instances.length);
+
+        const subNets: SubnetConfiguration[] = this.emptyArray(count).map((_, idx) => this.createSubNet(idx));
         const vpc: Vpc = this.createVpc(subNets);
         const securityGroup: SecurityGroup = this.createSecurityGroup(vpc);
-        const keyPairs: CfnKeyPair[] = this.emptyArray(configuration.instanceCount).map((_, idx) => this.createCfnKeyPair(idx));
+        const keyPairs: CfnKeyPair[] = this.emptyArray(count).map((_, idx) => this.createCfnKeyPair(idx));
 
-        for (let i = 0; i < configuration.instanceCount; i++) {
-            const instance = this.createInstance(i, vpc, securityGroup, keyPairs[i]);
+        for (let i = 0; i < count; i++) {
+            const configuredEC2Instance: EC2Instance | SingleEC2Instance = (isInstanceConfiguration(configuration) ? (configuration as InstanceConfiguration).instance : (configuration as InstanceArrayConfiguration).instances[i]);
+            const instance = this.createInstance(i, configuredEC2Instance, vpc, securityGroup, keyPairs[i]);
             new CfnOutput(this, `instanceIP${i}`, {
                 value: instance.instancePublicIp,
             });
@@ -87,13 +89,18 @@ export class Ec2Stack extends cdk.Stack {
         return securityGroup;
     }
 
-    createInstance(idx: number, vpc: Vpc, securityGroup: SecurityGroup, keyPair: CfnKeyPair) {
+    createInstance(idx: number, configuredEC2Instance: EC2Instance, vpc: Vpc, securityGroup: SecurityGroup, keyPair: CfnKeyPair) {
+        const clazz: InstanceClass = InstanceClass[configuredEC2Instance.class.toUpperCase() as keyof typeof InstanceClass];
+        const size: InstanceSize = InstanceSize[configuredEC2Instance.size.toUpperCase() as keyof typeof InstanceSize];
+        if (!clazz || !size) {
+            throw Error(`clazz and/or size have invalid values. clazz: ${configuredEC2Instance.class}, size: ${configuredEC2Instance.size}`);
+        }
         const instance = new Instance(this, `${configuration.id}LinuxInstance${idx}`, {
             instanceName: `${configuration.id}LinuxEc2Instance${idx}`,
             machineImage: MachineImage.genericLinux(Object.fromEntries(new Map([
-                [configuration.region, configuration.ami]
+                [configuration.region, configuredEC2Instance.ami]
             ]))),
-            instanceType: InstanceType.of(InstanceClass.T2, InstanceSize.MEDIUM),
+            instanceType: InstanceType.of(clazz, size),
             vpc: vpc,
             keyName: keyPair.keyName,
             securityGroup: securityGroup,
