@@ -139,8 +139,10 @@ Useful commands in the `callback.sh` script.
 
 * `jq '.EC2Stack<ID>.instance[IP | URI]<INSTANCE_IDX>' ${OUT_DIR}/info.json` +
 Extracts the instance `ip` or `uri` where the instance can be addressed
-* `jq '.instanceCount' ${CONFIGURATION_DIR}/configuration.json` +
-Gets the configured instance count
+* `jq '.instance.count' ${CONFIGURATION_DIR}/configuration.json` +
+Gets the configured instance count for a single instance configuration
+* `jq '.instances | length' ${CONFIGURATION_DIR}/configuration.json` +
+Gets the configured instance count for a array instance configuration
 
 IMPORTANT: Be aware that all commands of the `callback.sh` script are executed within the container!
 But it can generate resources to the `OUT_DIR` directory, which is mapped to the host.
