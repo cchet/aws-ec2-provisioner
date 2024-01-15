@@ -1,8 +1,10 @@
-FROM node:21.2.0-alpine3.18
+FROM node:21.2.0-bullseye-slim
 ARG AWS_CDK_VERSION=2.111.0
 
-RUN apk add --update --no-cache jq openssh-keygen \
-    && npm install -g aws-cdk@${AWS_CDK_VERSION}
+RUN apt-get update -y \
+    && apt-get install -y openssh-client  \
+    && npm install -g aws-cdk@${AWS_CDK_VERSION} \
+    && apt-get clean all
 
 ENV EXECUTION_DIR /provision
 ENV OUT_DIR /out
@@ -12,13 +14,12 @@ WORKDIR ${EXECUTION_DIR}
 
 COPY . ./
 
-RUN chmod 700 ./entrypoint.sh \
+RUN mv ./executor/target/executor-*-runner ./application \
+    && chmod 777 ./application \
     && npm ci \
     && npm cache clean --force
 
 VOLUME ["/root/.aws"]
 VOLUME ["/provision/config"]
 
-ENTRYPOINT ["/provision/entrypoint.sh"]
-
-CMD ["synth"]
+#ENTRYPOINT ["./application"]
