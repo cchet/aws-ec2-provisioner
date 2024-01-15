@@ -1,10 +1,14 @@
 #!/bin/sh
 
-instanceCount=$(jq '.instanceCount' ${CONFIGURATION_DIR}/configuration.json)
 callbackScript=${CONFIGURATION_DIR}/callback.sh
+instanceCount=$(jq '.instance.count' ${CONFIGURATION_DIR}/configuration.json)
+if [ "${instanceCount}" == "null" ]
+then
+  instanceCount=$(jq -r '.instances | length' ${CONFIGURATION_DIR}/configuration.json)
+fi
 
 function create_ssh_key_pairs {
-  if [[ "${instanceCount}" =~ ^[0-9]{1,2} ]]
+  if [[ "${instanceCount}" =~ ^[1-9]{1}[0-9]{0,} ]]
   then
     echo "Generating ssh key-pairs for instanceCount '${instanceCount}'"
     counter=0
